@@ -19,6 +19,26 @@ Pit is a simple version control client that lets you create, commit, clone, and 
 
 ---
 
+## 🚀 Global installation
+
+### Windows
+
+- Execute pit-setup.exe
+
+### MacOS
+
+```bash
+git clone https://github.com/PepijnBullens/pit.git
+cd pit
+```
+
+```bash
+pip install setuptools
+pip install .
+```
+
+---
+
 ## 🚀 Local installation
 
 ```bash
@@ -29,8 +49,8 @@ cd pit
 ### Client
 
 ```bash
-pip3 install setuptools
-pip3 install .
+pip install setuptools
+pip install .
 ```
 
 Now you can call 'pit' anywhere in your terminal to execute commands
@@ -39,11 +59,13 @@ Now you can call 'pit' anywhere in your terminal to execute commands
 
 ```bash
 cd server
-python3 -m venv .venv
-pip3 install fastapi uvicorn pydantic python-multipart typing-extensions
+python -m venv .venv
+pip install fastapi uvicorn pydantic python-multipart typing-extensions
 source .venv/bin/activate
 uvicorn main:app --reload
 ```
 
 Now you're running a virtual environment for the serverside of this project.
 Make sure the serverside is running on `http://127.0.0.1:8000`. If not change it in `/pit/cli.py`
+
+---
