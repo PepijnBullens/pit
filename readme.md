@@ -46,4 +46,4 @@ uvicorn main:app --reload
 ```
 
 Now you're running a virtual environment for the serverside of this project.
-Make sure the serverside is running on `http://127.0.0.1:8000`. If not change it in the /pit/cli.py
+Make sure the serverside is running on `http://127.0.0.1:8000`. If not change it in `/pit/cli.py`
