@@ -65,7 +65,7 @@ cd pit
 ### Client
 
 ```bash
-pip install setuptools
+pip install setuptools cryptography
 pip install .
 ```
 
