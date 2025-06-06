@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Form, File, UploadFile
+from fastapi import FastAPI, HTTPException, Form, File, UploadFile, Request, Depends
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from pathlib import Path
@@ -7,18 +7,46 @@ import json
 from datetime import datetime
 import hashlib
 import zipfile
+from cryptography.hazmat.primitives import serialization, hashes
+from cryptography.hazmat.primitives.asymmetric import padding
+import base64
 
 app = FastAPI()
 
 STORAGE_DIR = Path("storage")
+USER_KEYS_DIR = Path("user_keys")
 
 class RepoCreateRequest(BaseModel):
     username: str
     repo_name: str
 
+def get_username_from_pubkey(pubkey_bytes: bytes):
+    # hash the pubkey to get a username
+    return hashlib.sha256(pubkey_bytes).hexdigest()[:16]
+
+async def verify_auth(request: Request):
+    pubkey_b64 = request.headers.get("X-Pit-Pubkey")
+    signature = request.headers.get("X-Pit-Signature")
+    nonce = request.headers.get("X-Pit-Nonce")
+    if not pubkey_b64 or not signature or not nonce:
+        raise HTTPException(status_code=401, detail="Missing authentication headers")
+    try:
+        pubkey_bytes = base64.b64decode(pubkey_b64)
+        pubkey = serialization.load_pem_public_key(pubkey_bytes)
+        pubkey.verify(
+            base64.b64decode(signature),
+            nonce.encode(),
+            padding.PKCS1v15(),
+            hashes.SHA256()
+        )
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid signature")
+    username = get_username_from_pubkey(pubkey_bytes)
+    return username
+
 @app.post("/repos/create")
-async def create_repo(payload: RepoCreateRequest):
-    user_dir = STORAGE_DIR / payload.username
+async def create_repo(payload: RepoCreateRequest, username: str = Depends(verify_auth)):
+    user_dir = STORAGE_DIR / username
     repo_dir = user_dir / payload.repo_name / "commits"
 
     if repo_dir.exists():
@@ -101,9 +129,23 @@ async def commit_files(
     commit_message: str = Form(...),
     files: list[UploadFile] = File(...)
 ):
+    # File size cap: 100 MB
+    FILE_SIZE_CAP = 100 * 1024 * 1024  # 100 MB
+
     repo_path = STORAGE_DIR / username / repo_name / "commits"
     if not repo_path.exists():
         raise HTTPException(status_code=404, detail="Repository not found")
+
+    # Check file sizes before processing
+    for file in files:
+        file.file.seek(0, 2)  # Seek to end
+        size = file.file.tell()
+        file.file.seek(0)
+        if size > FILE_SIZE_CAP:
+            raise HTTPException(
+                status_code=400,
+                detail=f"File '{file.filename}' exceeds the 100 MB file size limit."
+            )
 
     commit_dirs = sorted([d for d in repo_path.iterdir() if d.is_dir()])
     old_files_dict = {}
