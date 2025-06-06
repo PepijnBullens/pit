@@ -39,8 +39,8 @@ Now you can call 'pit' anywhere in your terminal to execute commands
 
 ```bash
 cd server
-pip3 install fastapi uvicorn pydantic python-multipart typing-extensions
 python3 -m venv .venv
+pip3 install fastapi uvicorn pydantic python-multipart typing-extensions
 source .venv/bin/activate
 uvicorn main:app --reload
 ```
