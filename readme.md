@@ -60,6 +60,8 @@ git clone https://github.com/PepijnBullens/pit.git
 cd pit
 ```
 
+<br />
+
 ### Client
 
 ```bash
@@ -68,6 +70,8 @@ pip install .
 ```
 
 Now you can call 'pit' anywhere in your terminal to execute commands
+
+<br />
 
 ### Server
 
