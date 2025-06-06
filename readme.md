@@ -2,6 +2,8 @@
 
 Pit is a simple version control client that lets you create, commit, clone, and pull repositories, similar to Git — but lightweight and backend-powered via FastAPI.
 
+<br />
+
 ## 📦 Features
 
 - Create repositories remotely
@@ -10,14 +12,20 @@ Pit is a simple version control client that lets you create, commit, clone, and 
 - Pull updates from the server
 - Detects if you’re inside a valid `pit` repo
 
+
 ---
+
+<br />
 
 ## ⚠️ Requirements
 
 - python 3.7+
 - pip 25.1+
 
+
 ---
+
+<br />
 
 ## 🚀 Global installation
 
@@ -37,11 +45,13 @@ pip install setuptools
 pip install .
 ```
 
+
 ---
 
-## <details>
+<br />
 
-<summary>🚀 Local installation</summary>
+<details>
+<summary><h2>🚀 Local installation</h2></summary>
 
 ```bash
 git clone https://github.com/PepijnBullens/pit.git
@@ -68,8 +78,4 @@ uvicorn main:app --reload
 ```
 
 Now you're running a virtual environment for the serverside of this project.
-Make sure the serverside is running on `http://127.0.0.1:8000`. If not change it in `/pit/cli.py`
-
----
-
-</details>
+Make sure the serverside is running on `http://127.0.0.1:8000`. If not change it in `/pit/cli.py`</details>
