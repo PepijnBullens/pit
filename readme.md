@@ -53,6 +53,8 @@ pip install .
 <details>
 <summary><h2>🚀 Local installation</h2></summary>
 
+### Clone
+
 ```bash
 git clone https://github.com/PepijnBullens/pit.git
 cd pit
