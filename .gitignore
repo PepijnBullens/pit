@@ -1,3 +1,5 @@
 storage
 temp
 __pycache__
+pit.egg-info
+build
