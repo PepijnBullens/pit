@@ -1,7 +1,5 @@
 import requests
-import os
 import sys
-import shutil
 import zipfile
 import json
 from pathlib import Path
