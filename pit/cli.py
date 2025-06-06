@@ -10,7 +10,10 @@ SERVER_URL = "http://127.0.0.1:8000"
 
 def create_repo(username, repo_name):
     res = requests.post(f"{SERVER_URL}/repos/create", json={"username": username, "repo_name": repo_name})
-    print(res.json())
+    result = res.json()
+    if res.status_code != 200:
+        print(result.get("detail", "Unknown error"))
+        return
 
 def commit_repo(message):
     repo_path = Path.cwd()
@@ -47,12 +50,16 @@ def commit_repo(message):
     for _, filetuple in files_to_commit:
         filetuple[1].close()
 
-    print(res.json())
+    result = res.json()
+    if res.status_code != 200:
+        print(result.get("detail", "Unknown error"))
+        return
 
 def clone_repo(username, repo_name):
     res = requests.get(f"{SERVER_URL}/repos/{username}/{repo_name}/clone")
+    result = res.json()
     if res.status_code != 200:
-        print(res.json())
+        print(result.get("detail", "Unknown error"))
         return
 
     repo_path = Path.cwd() / repo_name
@@ -102,6 +109,15 @@ def pull_repo():
     else:
         print(f"Failed to pull: {res.json()}")
 
+def list_repos(username):
+    res = requests.get(f"{SERVER_URL}/repos/{username}/list")
+    result = res.json()
+    if res.status_code != 200:
+        print(result.get("detail", "Unknown error"))
+        return
+    
+    print(f"List: {result.get('repositories', [])}")
+
 def main():
     if len(sys.argv) < 2:
         print("Usage: client.py [create|clone|commit|pull] ...")
@@ -117,6 +133,8 @@ def main():
         commit_repo(sys.argv[2])
     elif cmd == "pull" and len(sys.argv) == 2:
         pull_repo()
+    elif cmd == "list" and len(sys.argv) == 3:
+        list_repos(sys.argv[2])
     else:
         print("Invalid command or arguments.")
 

@@ -85,6 +85,15 @@ async def pull_repo(username: str, repo_name: str):
 
     return FileResponse(zip_buffer, filename=f"{repo_name}.zip")
 
+@app.get("/repos/{username}/list")
+async def list_repos(username: str):
+    user_dir = STORAGE_DIR / username
+    if not user_dir.exists() or not user_dir.is_dir():
+        raise HTTPException(status_code=404, detail="User not found")
+    repos = [repo.name for repo in user_dir.iterdir() if (repo / "commits").exists()]
+    return {"repositories": repos}
+    
+
 @app.post("/repos/{username}/{repo_name}/commit")
 async def commit_files(
     username: str,
