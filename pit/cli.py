@@ -63,14 +63,15 @@ def commit_repo(message):
     # File size cap: 100 MB
     FILE_SIZE_CAP = 100 * 1024 * 1024  # 100 MB
 
-    # Gather all files in the repo folder except .pit
+    # Gather all files in the repo folder (recursively) except .pit
     files_to_commit = []
-    for file_path in repo_path.iterdir():
+    for file_path in repo_path.rglob("*"):
         if file_path.is_file() and file_path.name != ".pit":
+            rel_path = file_path.relative_to(repo_path)
             if file_path.stat().st_size > FILE_SIZE_CAP:
-                print(f"Error: '{file_path.name}' exceeds the 100 MB file size limit and will not be committed.")
+                print(f"Error: '{rel_path}' exceeds the 100 MB file size limit and will not be committed.")
                 continue
-            files_to_commit.append(("files", (file_path.name, open(file_path, "rb"))))
+            files_to_commit.append(("files", (str(rel_path), open(file_path, "rb"))))
 
     if not files_to_commit:
         print("No files found to commit.")
@@ -87,7 +88,12 @@ def commit_repo(message):
     for _, filetuple in files_to_commit:
         filetuple[1].close()
 
-    result = res.json()
+    try:
+        result = res.json()
+    except Exception:
+        print(f"Server returned non-JSON response (status {res.status_code}): {res.text}")
+        return
+
     if res.status_code != 200:
         print(result.get("detail", "Unknown error"))
         return
@@ -121,7 +127,7 @@ def clone_repo(repo_name):
     zip_path.unlink()
     print(f"Cloned into {repo_path}")
 
-def pull_repo():
+def pull_repo(commit_id=None):
     repo_path = Path.cwd()
     pit_file = repo_path / ".pit"
     if not pit_file.exists():
@@ -136,17 +142,44 @@ def pull_repo():
         print("Error: Invalid .pit file.")
         return
 
-    res = requests.get(f"{SERVER_URL}/repos/{username}/{repo_name}/pull", headers=auth_headers())
+    url = f"{SERVER_URL}/repos/{username}/{repo_name}/pull"
+    if commit_id:
+        url += f"?commit_id={commit_id}"
+
+    res = requests.get(url, headers=auth_headers())
     if res.status_code == 200:
         zip_path = repo_path / "pull_temp.zip"
         with open(zip_path, "wb") as f:
             f.write(res.content)
 
-        # Extract and overwrite existing files
-        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-            zip_ref.extractall(repo_path)
-        zip_path.unlink()
-        print(f"Pulled latest changes for {repo_name}.")
+        # Check if the zip file is valid and non-empty before extracting
+        if not zip_path.exists() or zip_path.stat().st_size == 0:
+            print("Error: Received empty or missing zip file from server.")
+            return
+
+        try:
+            with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                # Remove all files and folders except .pit before extracting
+                for path in repo_path.iterdir():
+                    if path.name == ".pit":
+                        continue
+                    if path.is_file():
+                        path.unlink()
+                    elif path.is_dir():
+                        import shutil
+                        shutil.rmtree(path)
+                zip_ref.extractall(repo_path)
+                print("Updated files:")
+                for name in zip_ref.namelist():
+                    print(f" - {name}")
+        except zipfile.BadZipFile:
+            print("Error: The downloaded file is not a valid zip archive.")
+            return
+        finally:
+            # Only try to delete if the file still exists
+            if zip_path.exists():
+                zip_path.unlink()
+        print(f"Pulled changes for {repo_name} (commit: {commit_id or 'latest'}).")
     else:
         print(f"Failed to pull: {res.json()}")
 
@@ -240,8 +273,14 @@ def main():
         clone_repo(sys.argv[2])
     elif cmd == "commit" and len(sys.argv) == 3:
         commit_repo(sys.argv[2])
-    elif cmd == "pull" and len(sys.argv) == 2:
-        pull_repo()
+    elif cmd == "pull":
+        # Accept optional commit_id
+        if len(sys.argv) == 2:
+            pull_repo()
+        elif len(sys.argv) == 3:
+            pull_repo(sys.argv[2])
+        else:
+            print("Usage: cli.py pull [commit_id]")
     elif cmd == "list" and len(sys.argv) == 2:
         list_repos()
     else:

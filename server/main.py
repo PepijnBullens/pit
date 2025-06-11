@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Form, File, UploadFile, Request, Depends
+from fastapi import FastAPI, HTTPException, Form, File, UploadFile, Request, Depends, Query
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from pathlib import Path
@@ -77,9 +77,11 @@ async def clone_repo(username: str, repo_name: str):
     zip_path.parent.mkdir(exist_ok=True)
 
     with zipfile.ZipFile(zip_path, 'w') as zipf:
-        for file in latest_commit.iterdir():
+        # Recursively add all files except metadata.json
+        for file in latest_commit.rglob("*"):
             if file.is_file() and file.name != "metadata.json":
-                zipf.write(file, arcname=file.name)
+                arcname = file.relative_to(latest_commit)
+                zipf.write(file, arcname=arcname)
 
         # Add .pit file to mark repo folder
         pit_info = {"username": username, "repo_name": repo_name}
@@ -92,7 +94,7 @@ async def clone_repo(username: str, repo_name: str):
     return FileResponse(zip_path, filename=f"{repo_name}.zip")
 
 @app.get("/repos/{username}/{repo_name}/pull")
-async def pull_repo(username: str, repo_name: str):
+async def pull_repo(username: str, repo_name: str, commit_id: str = Query(None)):
     repo_path = STORAGE_DIR / username / repo_name / "commits"
     if not repo_path.exists():
         raise HTTPException(status_code=404, detail="Repository not found")
@@ -101,15 +103,24 @@ async def pull_repo(username: str, repo_name: str):
     if not commit_dirs:
         raise HTTPException(status_code=404, detail="No commits to pull")
 
-    latest_commit = commit_dirs[-1]
+    if commit_id:
+        # Find the commit directory matching the commit_id
+        commit_dir = repo_path / commit_id
+        if not commit_dir.exists() or not commit_dir.is_dir():
+            raise HTTPException(status_code=404, detail="Commit not found")
+        target_commit = commit_dir
+    else:
+        target_commit = commit_dirs[-1]
 
     zip_buffer = Path("temp") / f"{username}_{repo_name}_pull.zip"
     zip_buffer.parent.mkdir(exist_ok=True)
 
     with zipfile.ZipFile(zip_buffer, 'w') as zipf:
-        for file in latest_commit.iterdir():
+        # Recursively add all files except metadata.json
+        for file in target_commit.rglob("*"):
             if file.is_file() and file.name != "metadata.json":
-                zipf.write(file, arcname=file.name)
+                arcname = file.relative_to(target_commit)
+                zipf.write(file, arcname=arcname)
 
     return FileResponse(zip_buffer, filename=f"{repo_name}.zip")
 
@@ -182,6 +193,7 @@ async def commit_files(
 
     for file in files:
         file_path = commit_path / file.filename
+        file_path.parent.mkdir(parents=True, exist_ok=True)  # Ensure parent dirs exist
         with file_path.open("wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
