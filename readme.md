@@ -27,7 +27,7 @@ Pit is a simple version control client that lets you create, commit, clone, and 
 
 <br />
 
-## 🚀 Global installation
+## 🚀 Global installation (Doesn't work yet since Pit is still in development!)
 
 ### Windows
 
