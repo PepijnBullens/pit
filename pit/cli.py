@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 import getpass
 
-SERVER_URL = "http://127.0.0.1:8000"
+SERVER_URL = "https://pit.pepijnbullens.nl"
 
 def prompt_credentials():
     username = input("Username: ")
@@ -83,9 +83,6 @@ def create_repo(repo_name):
     if not result:
         return
     print(result.get("message", "Repo created"))
-    # Initialize .pit/.config and .pit/commits locally
-    write_pit_config(username, repo_name)
-    pit_commits_dir().mkdir(parents=True, exist_ok=True)
 
 def commit_repo(message):
     repo_path = Path.cwd()
