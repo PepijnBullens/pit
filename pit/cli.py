@@ -279,33 +279,36 @@ def clone_repo(repo_name):
     print(f"Cloned into {repo_path}")
 
 def main():
-    if len(sys.argv) < 2:
-        print("Usage: cli.py [register|login|create|clone|commit|push|pull|list] ...")
-        return
-    cmd = sys.argv[1]
-    if cmd == "register":
-        register()
-    elif cmd == "login":
-        login()
-    elif cmd == "create" and len(sys.argv) == 3:
-        create_repo(sys.argv[2])
-    elif cmd == "clone" and len(sys.argv) == 3:
-        clone_repo(sys.argv[2])
-    elif cmd == "commit" and len(sys.argv) == 3:
-        commit_repo(sys.argv[2])
-    elif cmd == "push" and len(sys.argv) == 2:
-        push_repo()
-    elif cmd == "pull":
-        if len(sys.argv) == 2:
-            pull_repo()
-        elif len(sys.argv) == 3:
-            pull_repo(sys.argv[2])
+    try:
+        if len(sys.argv) < 2:
+            print("Usage: cli.py [register|login|create|clone|commit|push|pull|list] ...")
+            return
+        cmd = sys.argv[1]
+        if cmd == "register":
+            register()
+        elif cmd == "login":
+            login()
+        elif cmd == "create" and len(sys.argv) == 3:
+            create_repo(sys.argv[2])
+        elif cmd == "clone" and len(sys.argv) == 3:
+            clone_repo(sys.argv[2])
+        elif cmd == "commit" and len(sys.argv) == 3:
+            commit_repo(sys.argv[2])
+        elif cmd == "push" and len(sys.argv) == 2:
+            push_repo()
+        elif cmd == "pull":
+            if len(sys.argv) == 2:
+                pull_repo()
+            elif len(sys.argv) == 3:
+                pull_repo(sys.argv[2])
+            else:
+                print("Usage: cli.py pull [commit_id]")
+        elif cmd == "list" and len(sys.argv) == 2:
+            list_repos()
         else:
-            print("Usage: cli.py pull [commit_id]")
-    elif cmd == "list" and len(sys.argv) == 2:
-        list_repos()
-    else:
-        print("Invalid command or arguments.")
+            print("Invalid command or arguments.")
+    except KeyboardInterrupt:
+        print("\nExited successfully (Ctrl+C detected).")
 
 if __name__ == "__main__":
     main()
