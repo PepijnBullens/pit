@@ -7,11 +7,11 @@ Pit is a simple version control client that lets you create, commit, clone, and 
 ## 📦 Features
 
 - Create repositories remotely
-- Commit changes to the server
+- Commit changes locally
+- Push changes to the server
 - Clone repositories to your machine
 - Pull updates from the server
 - Detects if you’re inside a valid `pit` repo
-
 
 ---
 
@@ -22,29 +22,23 @@ Pit is a simple version control client that lets you create, commit, clone, and 
 - python 3.7+
 - pip 25.1+
 
-
 ---
 
 <br />
 
-## 🚀 Global installation (Doesn't work yet since Pit is still in development!)
-
-### Windows
-
-- Execute pit-setup.exe
-
-### MacOS
+## 🚀 Global installation
 
 ```bash
+# Clone the repository
 git clone https://github.com/PepijnBullens/pit.git
 cd pit
-```
 
-```bash
-pip install setuptools
+# Install all required dependencies and the Pit client
+pip install -r requirements.txt
 pip install .
 ```
 
+After installation, you can use the `pit` command anywhere in your terminal.
 
 ---
 
@@ -65,11 +59,11 @@ cd pit
 ### Client
 
 ```bash
-pip install setuptools cryptography
+pip install -r requirements.txt
 pip install .
 ```
 
-Now you can call 'pit' anywhere in your terminal to execute commands
+Now you can call `pit` anywhere in your terminal to execute commands.
 
 <br />
 
@@ -78,10 +72,12 @@ Now you can call 'pit' anywhere in your terminal to execute commands
 ```bash
 cd server
 python -m venv .venv
-pip install fastapi uvicorn pydantic python-multipart typing-extensions
 source .venv/bin/activate
+pip install fastapi uvicorn pydantic python-multipart typing-extensions
 uvicorn main:app --reload
 ```
 
 Now you're running a virtual environment for the serverside of this project.
-Make sure the serverside is running on `http://127.0.0.1:8000`. If not change it in `/pit/cli.py`</details>
+Make sure the serverside is running on `http://127.0.0.1:8000`. If not, change it in `/pit/cli.py`.
+
+</details>
